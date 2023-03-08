@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% block head %}
+        {% block metas %}
+            <meta charset="utf-8">
+        {% endblock metas %}
+
+        <title>{% block title %}Task Management Table{% endblock %}</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script  type="text/javascript">
+        $(document).ready(function() {
+            const itemsPerPage = 10; // number of items to display per page
+            const table = document.getElementById('taskManagementTable');
+            const pagination = document.getElementById('pagination');
+
+            function paginate(items, pageNumber) {
+              const startIndex = (pageNumber - 1) * itemsPerPage;
+              const endIndex = startIndex + itemsPerPage;
+              const paginatedItems = items.slice(startIndex, endIndex);
+              table.querySelector('tbody').innerHTML = '';
+              paginatedItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${item.createdby}</td><td>${item.email}</td><td>${item.taskdate}</td><td>${item.description}</td><td>${item.companyname}</td><td>${item.taskstatus}</td>`;
+                table.querySelector('tbody').appendChild(row);
+              });
+              generatePaginationLinks(items.length, pageNumber);
+            }
+
+            function generatePaginationLinks(totalItems, currentPage) {
+              pagination.innerHTML = '';
+              const totalPages = Math.ceil(totalItems / itemsPerPage);
+              for (let i = 1; i <= totalPages; i++) {
+                const link = document.createElement('a');
+                link.href = '#';
+                link.textContent = i;
+                if (i === currentPage) {
+                  link.classList.add('active');
+                }
+                link.addEventListener('click', function(event) {
+                  event.preventDefault();
+                  paginate(items, i);
+                  pagination.querySelectorAll('a').forEach(link => link.classList.remove('active'));
+                  this.classList.add('active');
+                });
+                pagination.appendChild(link);
+              }
+            }
+        // initial pagination call with page 1
+        function approveTask(id) {
+                $.ajax({
+                    type:"PUT",
+                    url:"update_value",
+                    contentType: 'application/json',
+                    data:JSON.stringify({ id: id, new_value: "APPROVED" }),
+                    success:function(response){
+                        location.reload();
+                    },
+                    error: function (xhr,status, error) {
+                        console.log("Error updating status:", status,error);
+                        }
+                });
+            }
+            function rejectTask(id) {
+                $.ajax({
+                    type:"PUT",
+                    url:"update_value",
+                    contentType: 'application/json',
+                    data:JSON.stringify({ id: id, new_value: "REJECTED" }),
+                    success:function(response){
+                        location.reload();
+                    },
+                    error: function (xhr,status, error) {
+                        console.log("Error updating status:", status,error);
+                        }
+                });
+            }
+            function uploadFile() {
+                var fileInput = document.getElementById('fileInput');
+                var file = fileInput.files[0];
+
+                // Read the contents of the file as text
+                var reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = function() {
+                    var csvData = reader.result;
+
+                    $.ajax({
+                        type:"POST",
+                        url:"upload_csv",
+                        contentType: 'application/json',
+                        data:JSON.stringify({ csvData : csvData }),
+                        success:function(response){
+                            console.log('CSV data uploaded successfully');
+                            location.reload();
+                        },
+                        error: function (xhr,status, error) {
+                            console.log('Request failed. Status:', status,error);
+                            }
+                    });
+                }
+            }
+        //const items = $("#pagination").val();
+        paginate(items, 10);
+        });
+        </script>
+        <div id="heading">
+            <h1>TASK MANAGEMENT</h1>
+            <form>
+                 <input type="file" id="fileInput">
+                 <button id="uploadFile" onclick="uploadFile();" class="btn btn-lg">UPLOAD FILE</button>
+            </form>
+        </div>
+        {% block styles %}
+            <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css' ) }}">
+        {% endblock styles %}
+    {% endblock head %}
+</head>
+
+{% block content %}
+  <body>
+    <table id="taskManagementTable" class="table table-bordered" style="border:5px double black;">
+      <thead>
+        <tr>
+          <th>Created By</th>
+          <th>Email</th>
+          <th>Task Date</th>
+          <th id="description">Task Description</th>
+          <th>Company Name</th>
+          <th id="statusHead">Task Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in csv_data %}
+        <tr>
+            {% if not loop.first %}
+                <td>{{ row.createdby}}</td>
+                <td>{{ row.email}}</td>
+                <td>{{ row.taskdate}}</td>
+                <td>{{ row.description}}</td>
+                <td>{{ row.companyname}}</td>
+                  {% if row.taskstatus == "IN_REVIEW"%}
+                    <td><button onclick="approveTask('{{row._id}}');"  type="button" class="Approve btn btn-default btn-xs">Approve</button>
+                        <button onclick="rejectTask('{{row._id}}');"  type="button" class="Reject btn btn-default btn-xs">Reject</button>
+                    <td>
+                  {% else %}
+                    <td>{{ row.taskstatus}}</td>
+                  {% endif %}
+            {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="pagination" value="{{csv_data}}"></div>
+  </body>
+</html>
+{% endblock %}
