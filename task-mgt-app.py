@@ -1,18 +1,18 @@
 import json
 
 from flask import Flask, render_template, request, redirect, url_for, Response
-from task_mgt_app.app import TaskTable
+from task_mgt_app.taskmgttable import TaskTable
 
 app = Flask(__name__)
 table_data = TaskTable()
 
-
+#Landing page
 @app.route('/')
 def index():
     data = table_data.task_table()
     return render_template('index.html', csv_data=data)
 
-
+#update table value
 @app.route("/update_value", methods=['PUT'])
 def update_value():
     try:
@@ -22,6 +22,7 @@ def update_value():
     except Exception as e:
         return str(e)
 
+#Insert new table to the existing table
 @app.route("/upload_csv", methods=['POST'])
 def update_csv():
     try:
