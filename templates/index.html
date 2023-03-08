@@ -9,44 +9,6 @@
         <title>{% block title %}Task Management Table{% endblock %}</title>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script  type="text/javascript">
-        $(document).ready(function() {
-            const itemsPerPage = 10; // number of items to display per page
-            const table = document.getElementById('taskManagementTable');
-            const pagination = document.getElementById('pagination');
-
-            function paginate(items, pageNumber) {
-              const startIndex = (pageNumber - 1) * itemsPerPage;
-              const endIndex = startIndex + itemsPerPage;
-              const paginatedItems = items.slice(startIndex, endIndex);
-              table.querySelector('tbody').innerHTML = '';
-              paginatedItems.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${item.createdby}</td><td>${item.email}</td><td>${item.taskdate}</td><td>${item.description}</td><td>${item.companyname}</td><td>${item.taskstatus}</td>`;
-                table.querySelector('tbody').appendChild(row);
-              });
-              generatePaginationLinks(items.length, pageNumber);
-            }
-
-            function generatePaginationLinks(totalItems, currentPage) {
-              pagination.innerHTML = '';
-              const totalPages = Math.ceil(totalItems / itemsPerPage);
-              for (let i = 1; i <= totalPages; i++) {
-                const link = document.createElement('a');
-                link.href = '#';
-                link.textContent = i;
-                if (i === currentPage) {
-                  link.classList.add('active');
-                }
-                link.addEventListener('click', function(event) {
-                  event.preventDefault();
-                  paginate(items, i);
-                  pagination.querySelectorAll('a').forEach(link => link.classList.remove('active'));
-                  this.classList.add('active');
-                });
-                pagination.appendChild(link);
-              }
-            }
-        // initial pagination call with page 1
         function approveTask(id) {
                 $.ajax({
                     type:"PUT",
@@ -100,9 +62,6 @@
                     });
                 }
             }
-        //const items = $("#pagination").val();
-        paginate(items, 10);
-        });
         </script>
         <div id="heading">
             <h1>TASK MANAGEMENT</h1>
